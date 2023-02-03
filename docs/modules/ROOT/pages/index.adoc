@@ -1,0 +1,28 @@
+= Quarkus Reactive H2 Client
+
+include::./includes/attributes.adoc[]
+
+This extension enable usage of reactive client on H2 database. Cause the Vert.x community does not develop a reactive driver for H2, Vert.x JDBC client is used for H2 database access.
+
+The purpose of develop this extension is to speed up testing with in memory H2 database on developer's workstation or build server. Even though the code base is about 90% same with quarkus reactive mysql client, it's not suggested being used in product environments.
+
+As https://github.com/cescoffier[Clement Escoffier] had point out in https://github.com/quarkusio/quarkus/issues/20471#issuecomment-1386577186[#20471]: The problem with the reactive API using a JDBC driver is the heavy usage of worker threads. Everything goes to a worker thread making such kind of solution expensive and slow. It also limits the concurrency and may use the worker threads for a long time (which means that the rest of the system may have to wait to be executed). Once you accept these limitations, sure, you can use that approach. But don't expect any benefits.
+
+Notice: DevService not supported yet.
+
+== Installation
+
+If you want to use this extension, you need to add the `io.quarkiverse.quarkus-reactive-h2-client:quarkus-reactive-h2-client` extension first to your build file.
+
+For instance, with Maven, add the following dependency to your POM file:
+
+[source,xml,subs=attributes+]
+----
+<dependency>
+    <groupId>io.quarkiverse.quarkus-reactive-h2-client</groupId>
+    <artifactId>quarkus-reactive-h2-client</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+include::includes/quarkus-reactive-h2-client.adoc[leveloffset=+1, opts=optional]

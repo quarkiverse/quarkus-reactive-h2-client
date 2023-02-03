@@ -1,0 +1,5 @@
+name: quarkus-reactive-h2-client
+title: Quarkus Reactive H2 Client
+version: dev
+nav:
+  - modules/ROOT/nav.adoc

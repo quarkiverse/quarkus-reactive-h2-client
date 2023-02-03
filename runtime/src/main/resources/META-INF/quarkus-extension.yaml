@@ -1,0 +1,19 @@
+name: Reactive H2 Client
+#description: Do something useful.
+metadata:
+  keywords:
+    - reactive-h2-client
+    - "eclipse-vert.x"
+    - "vertx"
+    - "vert.x"
+    - "reactive"
+    - "database"
+    - "data"
+    - "h2"
+#  guide: https://quarkiverse.github.io/quarkiverse-docs/reactive-h2-client/dev/
+  categories:
+    - "data"
+    - "reactive"
+  status: "stable"
+  config:
+    - "quarkus.datasource."
