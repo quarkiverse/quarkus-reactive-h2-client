@@ -1,23 +1,38 @@
 package io.quarkiverse.quarkus.reactive.h2.client.test;
 
-import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.junit.jupiter.api.Assertions;
+import org.hamcrest.Matchers;
+import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkus.test.QuarkusDevModeTest;
+import io.restassured.RestAssured;
 
 public class ReactiveH2ClientDevModeTest {
 
-    // Start hot reload (DevMode) test with your extension loaded
+    // Start hot reload (DevMode) test with extension loaded
     @RegisterExtension
     static final QuarkusDevModeTest devModeTest = new QuarkusDevModeTest()
-            .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class));
+            .withApplicationRoot((jar) -> jar
+                    .addClass(DevModeResource.class)
+                    .addAsResource(new StringAsset("quarkus.datasource.db-kind=h2\n" +
+                            "quarkus.datasource.reactive.url=vertx-reactive:h2:mem:reload_test"),
+                            "application.properties"));
 
     @Test
-    public void writeYourOwnDevModeTest() {
-        // Write your dev mode tests here - see the testing extension guide https://quarkus.io/guides/writing-extensions#testing-hot-reload for more information
-        Assertions.assertTrue(true, "Add dev mode assertions to " + getClass().getName());
+    public void testHotReplacement() {
+        RestAssured
+                .get("/dev/dbname")
+                .then()
+                .statusCode(200)
+                .body(Matchers.equalToIgnoringCase("reload_test"));
+
+        devModeTest.modifyResourceFile("application.properties", s -> s.replace(":reload_test", ":test_reload"));
+
+        RestAssured
+                .get("/dev/dbname")
+                .then()
+                .statusCode(200)
+                .body(Matchers.equalToIgnoringCase("test_reload"));
     }
 }
