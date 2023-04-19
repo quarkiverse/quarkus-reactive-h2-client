@@ -3,7 +3,7 @@ package io.quarkiverse.quarkus.reactive.h2.client.deployment;
 import java.util.List;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
 import io.quarkiverse.quarkus.reactive.h2.client.runtime.DataSourcesReactiveH2Config;
 import io.quarkiverse.quarkus.reactive.h2.client.runtime.H2PoolRecorder;
