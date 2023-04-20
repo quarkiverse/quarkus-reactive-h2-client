@@ -59,10 +59,6 @@ public class H2PoolRecorder {
                 dataSourceReactiveRuntimeConfig, dataSourceReactiveH2Config);
         JDBCConnectOptions connectOptions = toH2ConnectOptions(dataSourceRuntimeConfig,
                 dataSourceReactiveRuntimeConfig, dataSourceReactiveH2Config);
-        if (dataSourceReactiveRuntimeConfig.threadLocal.isPresent()) {
-            log.warn(
-                    "Configuration element 'thread-local' on Reactive datasource connections is deprecated and will be ignored. The started pool will always be based on a per-thread separate pool now.");
-        }
         return JDBCPool.pool(vertx, connectOptions, poolOptions);
     }
 
@@ -72,9 +68,7 @@ public class H2PoolRecorder {
             DataSourceReactiveH2Config dataSourceReactiveH2Config) {
         PoolOptions poolOptions = new PoolOptions();
 
-        if (dataSourceReactiveRuntimeConfig.maxSize.isPresent()) {
-            poolOptions.setMaxSize(dataSourceReactiveRuntimeConfig.maxSize.getAsInt());
-        }
+        poolOptions.setMaxSize(dataSourceReactiveRuntimeConfig.maxSize);
 
         if (dataSourceReactiveRuntimeConfig.idleTimeout.isPresent()) {
             int idleTimeout = Math.toIntExact(dataSourceReactiveRuntimeConfig.idleTimeout.get().toMillis());
@@ -105,7 +99,8 @@ public class H2PoolRecorder {
             DataSourceReactiveH2Config dataSourceReactiveH2Config) {
         JDBCConnectOptions connectOptions = new JDBCConnectOptions();
         if (dataSourceReactiveRuntimeConfig.url.isPresent()) {
-            String url = dataSourceReactiveRuntimeConfig.url.get();
+            // Only one URL is supported by JDBCPool
+            String url = dataSourceReactiveRuntimeConfig.url.get().get(0);
             // clean up the URL to make migrations easier
             if (url.startsWith("vertx-reactive:h2:")) {
                 url = url.substring("vertx-reactive:".length());
