@@ -9,7 +9,7 @@
 
   <groupId>io.quarkiverse.quarkus-reactive-h2-client</groupId>
   <artifactId>quarkus-reactive-h2-client-parent</artifactId>
-  <version>0.2.1</version>
+  <version>999-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Quarkus Reactive H2 Client - Parent</name>
 
@@ -74,8 +74,4 @@
       </modules>
     </profile>
   </profiles>
-
-  <scm>
-    <tag>0.2.1</tag>
-  </scm>
 </project>
