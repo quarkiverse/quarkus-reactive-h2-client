@@ -13,6 +13,13 @@ The purpose of develop this extension is to speed up testing with in memory H2 d
 
 As [Clement Escoffier](https://github.com/cescoffier) had point out in [#20471](https://github.com/quarkusio/quarkus/issues/20471#issuecomment-1386577186): The problem with the reactive API using a JDBC driver is the heavy usage of worker threads. Everything goes to a worker thread making such kind of solution expensive and slow. It also limits the concurrency and may use the worker threads for a long time (which means that the rest of the system may have to wait to be executed). Once you accept these limitations, sure, you can use that approach. But don't expect any benefits.
 
+Please pick corresponding version with Quarkus version:
+
+|Quarkus|Reactive H2 Client|
+|---|---|
+|2|0.1.x|
+|3|0.2.x|
+
 Notice: DevService not supported yet.
 
 ## Documentation
