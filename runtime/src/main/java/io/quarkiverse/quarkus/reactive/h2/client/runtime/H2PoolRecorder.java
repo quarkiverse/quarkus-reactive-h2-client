@@ -38,7 +38,7 @@ public class H2PoolRecorder {
 
         JDBCPool h2Pool = initialize(vertx.getValue(),
                 eventLoopCount.get(),
-                dataSourcesRuntimeConfig.getDataSourceRuntimeConfig(dataSourceName),
+                dataSourcesRuntimeConfig.dataSources().get(dataSourceName),
                 dataSourcesReactiveRuntimeConfig.getDataSourceReactiveRuntimeConfig(dataSourceName),
                 dataSourcesReactiveH2Config.getDataSourceReactiveRuntimeConfig(dataSourceName));
 
@@ -68,20 +68,20 @@ public class H2PoolRecorder {
             DataSourceReactiveH2Config dataSourceReactiveH2Config) {
         PoolOptions poolOptions = new PoolOptions();
 
-        poolOptions.setMaxSize(dataSourceReactiveRuntimeConfig.maxSize);
+        poolOptions.setMaxSize(dataSourceReactiveRuntimeConfig.maxSize());
 
-        if (dataSourceReactiveRuntimeConfig.idleTimeout.isPresent()) {
-            int idleTimeout = Math.toIntExact(dataSourceReactiveRuntimeConfig.idleTimeout.get().toMillis());
+        if (dataSourceReactiveRuntimeConfig.idleTimeout().isPresent()) {
+            int idleTimeout = Math.toIntExact(dataSourceReactiveRuntimeConfig.idleTimeout().get().toMillis());
             poolOptions.setIdleTimeout(idleTimeout).setIdleTimeoutUnit(TimeUnit.MILLISECONDS);
         }
 
-        if (dataSourceReactiveRuntimeConfig.shared) {
+        if (dataSourceReactiveRuntimeConfig.shared()) {
             poolOptions.setShared(true);
-            dataSourceReactiveRuntimeConfig.name.ifPresent(poolOptions::setName);
+            dataSourceReactiveRuntimeConfig.name().ifPresent(poolOptions::setName);
         }
 
-        if (dataSourceReactiveRuntimeConfig.eventLoopSize.isPresent()) {
-            poolOptions.setEventLoopSize(Math.max(0, dataSourceReactiveRuntimeConfig.eventLoopSize.getAsInt()));
+        if (dataSourceReactiveRuntimeConfig.eventLoopSize().isPresent()) {
+            poolOptions.setEventLoopSize(Math.max(0, dataSourceReactiveRuntimeConfig.eventLoopSize().getAsInt()));
         } else if (eventLoopCount != null) {
             poolOptions.setEventLoopSize(Math.max(0, eventLoopCount));
         }
@@ -98,9 +98,9 @@ public class H2PoolRecorder {
             DataSourceReactiveRuntimeConfig dataSourceReactiveRuntimeConfig,
             DataSourceReactiveH2Config dataSourceReactiveH2Config) {
         JDBCConnectOptions connectOptions = new JDBCConnectOptions();
-        if (dataSourceReactiveRuntimeConfig.url.isPresent()) {
+        if (dataSourceReactiveRuntimeConfig.url().isPresent()) {
             // Only one URL is supported by JDBCPool
-            String url = dataSourceReactiveRuntimeConfig.url.get().get(0);
+            String url = dataSourceReactiveRuntimeConfig.url().get().get(0);
             // clean up the URL to make migrations easier
             if (url.startsWith("vertx-reactive:h2:")) {
                 url = url.substring("vertx-reactive:".length());
@@ -108,14 +108,14 @@ public class H2PoolRecorder {
             connectOptions.setJdbcUrl("jdbc:" + url);
         }
 
-        dataSourceRuntimeConfig.username.ifPresent(connectOptions::setUser);
-        dataSourceRuntimeConfig.password.ifPresent(connectOptions::setPassword);
+        dataSourceRuntimeConfig.username().ifPresent(connectOptions::setUser);
+        dataSourceRuntimeConfig.password().ifPresent(connectOptions::setPassword);
 
         // credentials provider
-        if (dataSourceRuntimeConfig.credentialsProvider.isPresent()) {
-            String beanName = dataSourceRuntimeConfig.credentialsProviderName.orElse(null);
+        if (dataSourceRuntimeConfig.credentialsProvider().isPresent()) {
+            String beanName = dataSourceRuntimeConfig.credentialsProviderName().orElse(null);
             CredentialsProvider credentialsProvider = CredentialsProviderFinder.find(beanName);
-            String name = dataSourceRuntimeConfig.credentialsProvider.get();
+            String name = dataSourceRuntimeConfig.credentialsProvider().get();
             Map<String, String> credentials = credentialsProvider.getCredentials(name);
             String user = credentials.get(USER_PROPERTY_NAME);
             String password = credentials.get(PASSWORD_PROPERTY_NAME);
