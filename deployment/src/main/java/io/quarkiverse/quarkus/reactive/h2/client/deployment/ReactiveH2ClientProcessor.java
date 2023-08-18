@@ -65,19 +65,12 @@ class ReactiveH2ClientProcessor {
 
         feature.produce(new FeatureBuildItem(FEATURE));
 
-        createPoolIfDefined(recorder, vertx, eventLoopCount, shutdown, h2Pool, vertxPool, syntheticBeans,
-                DataSourceUtil.DEFAULT_DATASOURCE_NAME, dataSourcesBuildTimeConfig,
-                dataSourcesRuntimeConfig, dataSourcesReactiveBuildTimeConfig, dataSourcesReactiveRuntimeConfig,
-                dataSourcesReactiveH2Config, defaultDataSourceDbKindBuildItems, curateOutcomeBuildItem);
-
         for (String dataSourceName : dataSourcesBuildTimeConfig.dataSources().keySet()) {
-            if (!DataSourceUtil.DEFAULT_DATASOURCE_NAME.equals(dataSourceName)) {
-                createPoolIfDefined(recorder, vertx, eventLoopCount, shutdown, h2Pool, vertxPool, syntheticBeans,
-                        dataSourceName,
-                        dataSourcesBuildTimeConfig, dataSourcesRuntimeConfig, dataSourcesReactiveBuildTimeConfig,
-                        dataSourcesReactiveRuntimeConfig, dataSourcesReactiveH2Config, defaultDataSourceDbKindBuildItems,
-                        curateOutcomeBuildItem);
-            }
+            createPoolIfDefined(recorder, vertx, eventLoopCount, shutdown, h2Pool, vertxPool, syntheticBeans,
+                    dataSourceName,
+                    dataSourcesBuildTimeConfig, dataSourcesRuntimeConfig, dataSourcesReactiveBuildTimeConfig,
+                    dataSourcesReactiveRuntimeConfig, dataSourcesReactiveH2Config, defaultDataSourceDbKindBuildItems,
+                    curateOutcomeBuildItem);
         }
 
         return new ServiceStartBuildItem(FEATURE);
@@ -202,11 +195,6 @@ class ReactiveH2ClientProcessor {
             DataSourcesReactiveBuildTimeConfig dataSourcesReactiveBuildTimeConfig,
             List<DefaultDataSourceDbKindBuildItem> defaultDataSourceDbKindBuildItems,
             CurateOutcomeBuildItem curateOutcomeBuildItem) {
-        if (isReactiveH2PoolDefined(dataSourcesBuildTimeConfig, dataSourcesReactiveBuildTimeConfig,
-                DataSourceUtil.DEFAULT_DATASOURCE_NAME, defaultDataSourceDbKindBuildItems, curateOutcomeBuildItem)) {
-            return true;
-        }
-
         for (String dataSourceName : dataSourcesBuildTimeConfig.dataSources().keySet()) {
             if (isReactiveH2PoolDefined(dataSourcesBuildTimeConfig, dataSourcesReactiveBuildTimeConfig,
                     dataSourceName, defaultDataSourceDbKindBuildItems, curateOutcomeBuildItem)) {
