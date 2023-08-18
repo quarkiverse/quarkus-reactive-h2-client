@@ -71,10 +71,13 @@ class ReactiveH2ClientProcessor {
                 dataSourcesReactiveH2Config, defaultDataSourceDbKindBuildItems, curateOutcomeBuildItem);
 
         for (String dataSourceName : dataSourcesBuildTimeConfig.dataSources().keySet()) {
-            createPoolIfDefined(recorder, vertx, eventLoopCount, shutdown, h2Pool, vertxPool, syntheticBeans, dataSourceName,
-                    dataSourcesBuildTimeConfig, dataSourcesRuntimeConfig, dataSourcesReactiveBuildTimeConfig,
-                    dataSourcesReactiveRuntimeConfig, dataSourcesReactiveH2Config, defaultDataSourceDbKindBuildItems,
-                    curateOutcomeBuildItem);
+            if (!DataSourceUtil.DEFAULT_DATASOURCE_NAME.equals(dataSourceName)) {
+                createPoolIfDefined(recorder, vertx, eventLoopCount, shutdown, h2Pool, vertxPool, syntheticBeans,
+                        dataSourceName,
+                        dataSourcesBuildTimeConfig, dataSourcesRuntimeConfig, dataSourcesReactiveBuildTimeConfig,
+                        dataSourcesReactiveRuntimeConfig, dataSourcesReactiveH2Config, defaultDataSourceDbKindBuildItems,
+                        curateOutcomeBuildItem);
+            }
         }
 
         return new ServiceStartBuildItem(FEATURE);
