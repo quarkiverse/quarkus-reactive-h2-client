@@ -15,10 +15,11 @@ As [Clement Escoffier](https://github.com/cescoffier) had point out in [#20471](
 
 Please pick corresponding version with Quarkus version:
 
-|Quarkus|Reactive H2 Client|
-|---|---|
-|2|0.1.x|
-|3|0.2.x|
+| Quarkus       | Reactive H2 Client |
+|---------------|--------------------|
+| 2             | 0.1.x              |
+| 3.0.0 - 3.2.x | 0.2.x              |
+| 3.3.x         | 0.3.x              |
 
 Notice: DevService not supported yet.
 

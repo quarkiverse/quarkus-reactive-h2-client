@@ -65,13 +65,9 @@ class ReactiveH2ClientProcessor {
 
         feature.produce(new FeatureBuildItem(FEATURE));
 
-        createPoolIfDefined(recorder, vertx, eventLoopCount, shutdown, h2Pool, vertxPool, syntheticBeans,
-                DataSourceUtil.DEFAULT_DATASOURCE_NAME, dataSourcesBuildTimeConfig,
-                dataSourcesRuntimeConfig, dataSourcesReactiveBuildTimeConfig, dataSourcesReactiveRuntimeConfig,
-                dataSourcesReactiveH2Config, defaultDataSourceDbKindBuildItems, curateOutcomeBuildItem);
-
-        for (String dataSourceName : dataSourcesBuildTimeConfig.namedDataSources.keySet()) {
-            createPoolIfDefined(recorder, vertx, eventLoopCount, shutdown, h2Pool, vertxPool, syntheticBeans, dataSourceName,
+        for (String dataSourceName : dataSourcesBuildTimeConfig.dataSources().keySet()) {
+            createPoolIfDefined(recorder, vertx, eventLoopCount, shutdown, h2Pool, vertxPool, syntheticBeans,
+                    dataSourceName,
                     dataSourcesBuildTimeConfig, dataSourcesRuntimeConfig, dataSourcesReactiveBuildTimeConfig,
                     dataSourcesReactiveRuntimeConfig, dataSourcesReactiveH2Config, defaultDataSourceDbKindBuildItems,
                     curateOutcomeBuildItem);
@@ -103,7 +99,7 @@ class ReactiveH2ClientProcessor {
 
         healthChecks.produce(
                 new HealthBuildItem("io.quarkiverse.quarkus.reactive.h2.client.runtime.health.ReactiveH2DataSourcesHealthCheck",
-                        dataSourcesBuildTimeConfig.healthEnabled));
+                        dataSourcesBuildTimeConfig.healthEnabled()));
     }
 
     @BuildStep
@@ -178,33 +174,28 @@ class ReactiveH2ClientProcessor {
             List<DefaultDataSourceDbKindBuildItem> defaultDataSourceDbKindBuildItems,
             CurateOutcomeBuildItem curateOutcomeBuildItem) {
         DataSourceBuildTimeConfig dataSourceBuildTimeConfig = dataSourcesBuildTimeConfig
-                .getDataSourceRuntimeConfig(dataSourceName);
+                .dataSources().get(dataSourceName);
         DataSourceReactiveBuildTimeConfig dataSourceReactiveBuildTimeConfig = dataSourcesReactiveBuildTimeConfig
                 .getDataSourceReactiveBuildTimeConfig(dataSourceName);
 
-        Optional<String> dbKind = DefaultDataSourceDbKindBuildItem.resolve(dataSourceBuildTimeConfig.dbKind,
+        Optional<String> dbKind = DefaultDataSourceDbKindBuildItem.resolve(dataSourceBuildTimeConfig.dbKind(),
                 defaultDataSourceDbKindBuildItems,
-                !DataSourceUtil.isDefault(dataSourceName) || dataSourceBuildTimeConfig.devservices.enabled
-                        .orElse(dataSourcesBuildTimeConfig.namedDataSources.isEmpty()),
+                !DataSourceUtil.isDefault(dataSourceName) || dataSourceBuildTimeConfig.devservices().enabled()
+                        .orElse(dataSourcesBuildTimeConfig.dataSources().isEmpty()),
                 curateOutcomeBuildItem);
 
         if (!dbKind.isPresent()) {
             return false;
         }
 
-        return DatabaseKind.isH2(dbKind.get()) && dataSourceReactiveBuildTimeConfig.enabled;
+        return DatabaseKind.isH2(dbKind.get()) && dataSourceReactiveBuildTimeConfig.enabled();
     }
 
     private boolean hasPools(DataSourcesBuildTimeConfig dataSourcesBuildTimeConfig,
             DataSourcesReactiveBuildTimeConfig dataSourcesReactiveBuildTimeConfig,
             List<DefaultDataSourceDbKindBuildItem> defaultDataSourceDbKindBuildItems,
             CurateOutcomeBuildItem curateOutcomeBuildItem) {
-        if (isReactiveH2PoolDefined(dataSourcesBuildTimeConfig, dataSourcesReactiveBuildTimeConfig,
-                DataSourceUtil.DEFAULT_DATASOURCE_NAME, defaultDataSourceDbKindBuildItems, curateOutcomeBuildItem)) {
-            return true;
-        }
-
-        for (String dataSourceName : dataSourcesBuildTimeConfig.namedDataSources.keySet()) {
+        for (String dataSourceName : dataSourcesBuildTimeConfig.dataSources().keySet()) {
             if (isReactiveH2PoolDefined(dataSourcesBuildTimeConfig, dataSourcesReactiveBuildTimeConfig,
                     dataSourceName, defaultDataSourceDbKindBuildItems, curateOutcomeBuildItem)) {
                 return true;
