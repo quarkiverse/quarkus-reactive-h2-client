@@ -4,7 +4,7 @@
   <parent>
     <groupId>io.quarkiverse.quarkus-reactive-h2-client</groupId>
     <artifactId>quarkus-reactive-h2-client-parent</artifactId>
-    <version>999-SNAPSHOT</version>
+    <version>0.3.4</version>
   </parent>
 
   <artifactId>quarkus-reactive-h2-client-integration-tests</artifactId>
