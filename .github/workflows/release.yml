@@ -20,7 +20,7 @@ jobs:
           github-token: ${{secrets.GITHUB_TOKEN}}
           metadata-file-path: '.github/project.yml'
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Import GPG key
         id: import_gpg
@@ -30,7 +30,7 @@ jobs:
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
@@ -69,7 +69,7 @@ jobs:
             # Move the tag after inclusion of documentation adjustments
             git tag -f ${{steps.metadata.outputs.current-version}}
             # Push modified tag
-            git push origin refs/tags/${{steps.metadata.outputs.current-version}} -f          
+            git push origin refs/tags/${{steps.metadata.outputs.current-version}} -f
           fi
           # Go back to base branch
           git checkout ${{github.base_ref}}
