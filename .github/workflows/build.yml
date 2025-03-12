@@ -30,6 +30,9 @@ jobs:
       matrix:
 #        os: [windows-latest, macos-latest, ubuntu-latest]
         os: [ubuntu-latest]
+        java: [
+          { 'version': '17' }
+        ]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Prepare git
@@ -37,11 +40,11 @@ jobs:
         if: startsWith(matrix.os, 'windows')
 
       - uses: actions/checkout@v4
-      - name: Set up JDK 17
+      - name: Set up JDK ${{matrix.java.version}}
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
+          java-version: ${{matrix.java.version}}
           cache: 'maven'
 
       - name: Build with Maven
