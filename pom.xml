@@ -4,7 +4,7 @@
   <parent>
     <groupId>io.quarkiverse</groupId>
     <artifactId>quarkiverse-parent</artifactId>
-    <version>19</version>
+    <version>20</version>
   </parent>
   <groupId>io.quarkiverse.quarkus-reactive-h2-client</groupId>
   <artifactId>quarkus-reactive-h2-client-parent</artifactId>
@@ -26,7 +26,7 @@
     <maven.compiler.release>17</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <quarkus.version>3.19.2</quarkus.version>
+    <quarkus.version>3.21.2</quarkus.version>
   </properties>
   <dependencyManagement>
     <dependencies>
