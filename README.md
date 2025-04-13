@@ -17,12 +17,39 @@ Please pick corresponding version with Quarkus version:
 
 | Quarkus       | Reactive H2 Client |
 |---------------|--------------------|
-| 2             | 0.1.x              |
+| 2.x           | 0.1.x              |
 | 3.0.0 - 3.2.x | 0.2.x              |
 | 3.3.x - 3.8.x | 0.3.x              |
 | 3.15.x -      | 0.4.x              |
+|3.19.x - 3.20.x |0.5.x              |
+|3.21.x -       |0.6.x               |
 
 Notice: DevService not supported yet.
+
+## Installation
+
+If you want to use this extension, you need to add the `io.quarkiverse.quarkus-reactive-h2-client:quarkus-reactive-h2-client` extension first to your build file.
+
+For instance, with Maven, add the following dependency to your POM file:
+
+```
+<dependency>
+    <groupId>io.quarkiverse.quarkus-reactive-h2-client</groupId>
+    <artifactId>quarkus-reactive-h2-client</artifactId>
+    <version>{project-version}</version>
+</dependency>
+```
+
+## Usage
+
+To test with this extension, you need specify h2 database instance for your application.
+
+For instance with MariaDB, add the follow specification to your application.properties:
+
+```
+%test.quarkus.datasource.db-kind=h2
+%test.quarkus.datasource.reactive.url=h2:mem:your_test_db;mode=mariadb;your_other_test_config
+```
 
 ## Documentation
 
