@@ -14,7 +14,9 @@ As https://github.com/cescoffier[Clement Escoffier] had point out in https://git
 |2|0.1.x
 |3.0.0 - 3.2.x |0.2.x
 |3.3.x - 3.8.x |0.3.x
-|3.15.x -      |0.4.x
+|3.15.x        |0.4.x
+|3.19.x - 3.20.x |0.5.x
+|3.21.x -      |0.6.x
 
 |===
 
@@ -33,6 +35,17 @@ For instance, with Maven, add the following dependency to your POM file:
     <artifactId>quarkus-reactive-h2-client</artifactId>
     <version>{project-version}</version>
 </dependency>
+----
+
+== Usage
+
+To test with this extension, you need specify h2 database instance for your application.
+
+For instance with MariaDB, add the follow specification to your application.properties:
+
+----
+%test.quarkus.datasource.db-kind=h2
+%test.quarkus.datasource.reactive.url=h2:mem:your_test_db;mode=mariadb;your_other_test_config
 ----
 
 include::includes/quarkus-reactive-h2-client.adoc[leveloffset=+1, opts=optional]
