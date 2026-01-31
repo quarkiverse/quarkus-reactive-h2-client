@@ -37,12 +37,22 @@ public class H2PoolRecorder {
     private static final TypeLiteral<Instance<H2PoolCreator>> TYPE_LITERAL = new TypeLiteral<>() {
     };
 
+    private final RuntimeValue<DataSourcesRuntimeConfig> runtimeConfig;
+    private final RuntimeValue<DataSourcesReactiveRuntimeConfig> reactiveRuntimeConfig;
+    private final RuntimeValue<DataSourcesReactiveH2Config> reactiveH2RuntimeConfig;
+
+    public H2PoolRecorder(
+            final RuntimeValue<DataSourcesRuntimeConfig> runtimeConfig,
+            final RuntimeValue<DataSourcesReactiveRuntimeConfig> reactiveRuntimeConfig,
+            final RuntimeValue<DataSourcesReactiveH2Config> reactiveH2RuntimeConfig) {
+        this.runtimeConfig = runtimeConfig;
+        this.reactiveRuntimeConfig = reactiveRuntimeConfig;
+        this.reactiveH2RuntimeConfig = reactiveH2RuntimeConfig;
+    }
+
     public Function<SyntheticCreationalContext<JDBCPool>, JDBCPool> configureH2Pool(RuntimeValue<Vertx> vertx,
             Supplier<Integer> eventLoopCount,
             String dataSourceName,
-            DataSourcesRuntimeConfig dataSourcesRuntimeConfig,
-            DataSourcesReactiveRuntimeConfig dataSourcesReactiveRuntimeConfig,
-            DataSourcesReactiveH2Config dataSourcesReactiveH2Config,
             ShutdownContext shutdown) {
         return new Function<>() {
             @Override
@@ -50,9 +60,9 @@ public class H2PoolRecorder {
                 JDBCPool pool = initialize((VertxInternal) vertx.getValue(),
                         eventLoopCount.get(),
                         dataSourceName,
-                        dataSourcesRuntimeConfig.dataSources().get(dataSourceName),
-                        dataSourcesReactiveRuntimeConfig.getDataSourceReactiveRuntimeConfig(dataSourceName),
-                        dataSourcesReactiveH2Config.dataSources().get(dataSourceName).reactive().h2(),
+                        runtimeConfig.getValue().dataSources().get(dataSourceName),
+                        reactiveRuntimeConfig.getValue().getDataSourceReactiveRuntimeConfig(dataSourceName),
+                        reactiveH2RuntimeConfig.getValue().dataSources().get(dataSourceName).reactive().h2(),
                         context);
 
                 shutdown.addShutdownTask(pool::close);

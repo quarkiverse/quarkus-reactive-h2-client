@@ -20,7 +20,6 @@ import org.jboss.jandex.ParameterizedType;
 import org.jboss.jandex.Type;
 
 import io.quarkiverse.quarkus.reactive.h2.client.H2PoolCreator;
-import io.quarkiverse.quarkus.reactive.h2.client.runtime.DataSourcesReactiveH2Config;
 import io.quarkiverse.quarkus.reactive.h2.client.runtime.H2PoolRecorder;
 import io.quarkiverse.quarkus.reactive.h2.client.runtime.H2ServiceBindingConverter;
 import io.quarkus.arc.SyntheticCreationalContext;
@@ -38,7 +37,6 @@ import io.quarkus.datasource.deployment.spi.DevServicesDatasourceConfigurationHa
 import io.quarkus.datasource.runtime.DataSourceBuildTimeConfig;
 import io.quarkus.datasource.runtime.DataSourceSupport;
 import io.quarkus.datasource.runtime.DataSourcesBuildTimeConfig;
-import io.quarkus.datasource.runtime.DataSourcesRuntimeConfig;
 import io.quarkus.deployment.Capabilities;
 import io.quarkus.deployment.Capability;
 import io.quarkus.deployment.annotations.BuildProducer;
@@ -55,7 +53,6 @@ import io.quarkus.reactive.datasource.ReactiveDataSource;
 import io.quarkus.reactive.datasource.deployment.VertxPoolBuildItem;
 import io.quarkus.reactive.datasource.runtime.DataSourceReactiveBuildTimeConfig;
 import io.quarkus.reactive.datasource.runtime.DataSourcesReactiveBuildTimeConfig;
-import io.quarkus.reactive.datasource.runtime.DataSourcesReactiveRuntimeConfig;
 import io.quarkus.smallrye.health.deployment.spi.HealthBuildItem;
 import io.quarkus.vertx.core.deployment.EventLoopCountBuildItem;
 import io.quarkus.vertx.deployment.VertxBuildItem;
@@ -82,10 +79,8 @@ class ReactiveH2ClientProcessor {
             ShutdownContextBuildItem shutdown,
             BuildProducer<SyntheticBeanBuildItem> syntheticBeans,
             BuildProducer<ExtensionSslNativeSupportBuildItem> sslNativeSupport,
-            DataSourcesBuildTimeConfig dataSourcesBuildTimeConfig, DataSourcesRuntimeConfig dataSourcesRuntimeConfig,
+            DataSourcesBuildTimeConfig dataSourcesBuildTimeConfig,
             DataSourcesReactiveBuildTimeConfig dataSourcesReactiveBuildTimeConfig,
-            DataSourcesReactiveRuntimeConfig dataSourcesReactiveRuntimeConfig,
-            DataSourcesReactiveH2Config dataSourcesReactiveH2Config,
             List<DefaultDataSourceDbKindBuildItem> defaultDataSourceDbKindBuildItems,
             CurateOutcomeBuildItem curateOutcomeBuildItem) {
 
@@ -93,8 +88,8 @@ class ReactiveH2ClientProcessor {
 
         for (String dataSourceName : dataSourcesBuildTimeConfig.dataSources().keySet()) {
             createPoolIfDefined(recorder, vertx, eventLoopCount, shutdown, h2Pool, syntheticBeans, dataSourceName,
-                    dataSourcesBuildTimeConfig, dataSourcesRuntimeConfig, dataSourcesReactiveBuildTimeConfig,
-                    dataSourcesReactiveRuntimeConfig, dataSourcesReactiveH2Config, defaultDataSourceDbKindBuildItems,
+                    dataSourcesBuildTimeConfig, dataSourcesReactiveBuildTimeConfig,
+                    defaultDataSourceDbKindBuildItems,
                     curateOutcomeBuildItem);
         }
 
@@ -180,10 +175,7 @@ class ReactiveH2ClientProcessor {
             BuildProducer<SyntheticBeanBuildItem> syntheticBeans,
             String dataSourceName,
             DataSourcesBuildTimeConfig dataSourcesBuildTimeConfig,
-            DataSourcesRuntimeConfig dataSourcesRuntimeConfig,
             DataSourcesReactiveBuildTimeConfig dataSourcesReactiveBuildTimeConfig,
-            DataSourcesReactiveRuntimeConfig dataSourcesReactiveRuntimeConfig,
-            DataSourcesReactiveH2Config dataSourcesReactiveH2Config,
             List<DefaultDataSourceDbKindBuildItem> defaultDataSourceDbKindBuildItems,
             CurateOutcomeBuildItem curateOutcomeBuildItem) {
 
@@ -195,9 +187,6 @@ class ReactiveH2ClientProcessor {
         Function<SyntheticCreationalContext<JDBCPool>, JDBCPool> poolFunction = recorder.configureH2Pool(vertx.getVertx(),
                 eventLoopCount.getEventLoopCount(),
                 dataSourceName,
-                dataSourcesRuntimeConfig,
-                dataSourcesReactiveRuntimeConfig,
-                dataSourcesReactiveH2Config,
                 shutdown);
         h2Pool.produce(new H2PoolBuildItem(dataSourceName, poolFunction));
 
