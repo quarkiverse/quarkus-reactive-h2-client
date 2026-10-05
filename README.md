@@ -24,6 +24,7 @@ Please pick corresponding version with Quarkus version:
 |3.19.x - 3.20.x |0.5.x              |
 |3.21.x - 3.27.x |0.6.x              |
 |3.28.x - 3.33.x |0.7.x              |
+|3.40.x -        |0.8.x              |
 
 Notice: DevService not supported yet.
 
