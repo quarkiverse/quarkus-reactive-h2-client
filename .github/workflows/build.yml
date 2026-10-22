@@ -31,7 +31,6 @@ jobs:
 #        os: [windows-latest, macos-latest, ubuntu-latest]
         os: [ubuntu-latest]
         java: [
-          { 'version': '17' },
           { 'version': '21' }
         ]
     runs-on: ${{ matrix.os }}
