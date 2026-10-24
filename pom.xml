@@ -23,7 +23,7 @@
   </scm>
   <properties>
     <compiler-plugin.version>3.14.1</compiler-plugin.version>
-    <maven.compiler.release>17</maven.compiler.release>
+    <maven.compiler.release>21</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <quarkus.version>3.40.1.1</quarkus.version>
@@ -45,7 +45,11 @@
         <plugin>
           <artifactId>maven-enforcer-plugin</artifactId>
           <configuration>
-            <skip>true</skip>
+            <rules>
+              <!-- Forces all transitive dependencies to use the identical version -->
+              <dependencyConvergence/>
+            </rules>
+            <fail>true</fail>
           </configuration>
         </plugin>
         <plugin>
@@ -56,6 +60,7 @@
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
           <version>${compiler-plugin.version}</version>
+          <extensions>true</extensions>
           <configuration>
             <compilerArgs>
               <arg>-parameters</arg>
