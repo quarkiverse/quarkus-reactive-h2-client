@@ -26,7 +26,6 @@ import io.quarkus.runtime.RuntimeValue;
 import io.quarkus.runtime.ShutdownContext;
 import io.quarkus.runtime.annotations.Recorder;
 import io.vertx.core.Vertx;
-import io.vertx.core.impl.VertxInternal;
 import io.vertx.jdbcclient.JDBCConnectOptions;
 import io.vertx.jdbcclient.JDBCPool;
 import io.vertx.sqlclient.PoolOptions;
@@ -57,7 +56,7 @@ public class H2PoolRecorder {
         return new Function<>() {
             @Override
             public JDBCPool apply(SyntheticCreationalContext<JDBCPool> context) {
-                JDBCPool pool = initialize((VertxInternal) vertx.getValue(),
+                JDBCPool pool = initialize(vertx.getValue(),
                         eventLoopCount.get(),
                         dataSourceName,
                         runtimeConfig.getValue().dataSources().get(dataSourceName),
@@ -82,7 +81,7 @@ public class H2PoolRecorder {
         };
     }
 
-    private JDBCPool initialize(VertxInternal vertx,
+    private JDBCPool initialize(Vertx vertx,
             Integer eventLoopCount,
             String dataSourceName,
             DataSourceRuntimeConfig dataSourceRuntimeConfig,
