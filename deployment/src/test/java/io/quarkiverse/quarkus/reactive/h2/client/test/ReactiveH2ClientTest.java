@@ -14,6 +14,8 @@ public class ReactiveH2ClientTest {
     @RegisterExtension
     static final QuarkusExtensionTest unitTest = new QuarkusExtensionTest()
             .withApplicationRoot((jar) -> jar
+                    // runs SELECT 1 on the default datasource
+                    .addClass(CredentialsTestResource.class)
                     .addAsResource("application-default-datasource.properties", "application.properties"));
 
     @Test
