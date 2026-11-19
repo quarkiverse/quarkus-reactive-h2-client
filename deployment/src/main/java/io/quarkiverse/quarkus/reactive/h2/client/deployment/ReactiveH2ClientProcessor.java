@@ -85,7 +85,10 @@ class ReactiveH2ClientProcessor {
                             beanContainer) -> {
                         Optional<Pool> pool = H2PoolRecorder.createPool(dataSourceName, runtimeConfig,
                                 reactiveRuntimeConfig, h2Config, vertx, eventLoopCount.getAsInt());
-                        pool.ifPresent(p -> ctx.onStop(p::close));
+                        // the service only counts as stopped once the connections are closed: an in-memory H2 database
+                        // lives as long as a connection is open, a new application could otherwise still see it
+                        pool.ifPresent(
+                                p -> ctx.onStopAsync(stopContext -> p.close().onComplete(ar -> stopContext.stopComplete())));
                         return pool;
                     });
             pools.produce(new ReactivePoolBuildItem(dataSourceName, TYPE, HEALTH_CHECK_SQL));
