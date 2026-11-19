@@ -11,7 +11,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkus.reactive.datasource.ReactiveDataSource;
 import io.quarkus.test.QuarkusExtensionTest;
-import io.vertx.jdbcclient.JDBCPool;
+import io.vertx.sqlclient.Pool;
 
 public class MultipleDataSourcesTest {
 
@@ -40,11 +40,11 @@ public class MultipleDataSourcesTest {
     static class BeanUsingDefaultDataSource {
 
         @Inject
-        JDBCPool h2Client;
+        Pool h2Client;
 
         public CompletionStage<Void> verify() {
             CompletableFuture<Void> cf = new CompletableFuture<>();
-            h2Client.query("SELECT 1").execute(ar -> {
+            h2Client.query("SELECT 1").execute().onComplete(ar -> {
                 if (ar.failed()) {
                     cf.completeExceptionally(ar.cause());
                 } else {
@@ -60,11 +60,11 @@ public class MultipleDataSourcesTest {
 
         @Inject
         @ReactiveDataSource("hibernate")
-        JDBCPool h2Client;
+        Pool h2Client;
 
         public CompletionStage<Void> verify() {
             CompletableFuture<Void> cf = new CompletableFuture<>();
-            h2Client.query("SELECT 1").execute(ar -> {
+            h2Client.query("SELECT 1").execute().onComplete(ar -> {
                 if (ar.failed()) {
                     cf.completeExceptionally(ar.cause());
                 } else {

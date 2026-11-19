@@ -10,20 +10,20 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-import io.vertx.jdbcclient.JDBCPool;
+import io.vertx.sqlclient.Pool;
 
 @Path("/dev")
 public class DevModeResource {
 
     @Inject
-    JDBCPool client;
+    Pool client;
 
     @GET
     @Path("/dbname")
     @Produces(MediaType.TEXT_PLAIN)
     public CompletionStage<Response> getErrorMessage() {
         CompletableFuture<Response> future = new CompletableFuture<>();
-        client.query("SELECT CATALOG_NAME FROM INFORMATION_SCHEMA.SCHEMATA").execute(
+        client.query("SELECT CATALOG_NAME FROM INFORMATION_SCHEMA.SCHEMATA").execute().onComplete(
                 ar -> future.complete(Response.ok(ar.result().iterator().next().getString("CATALOG_NAME")).build()));
         return future;
     }
