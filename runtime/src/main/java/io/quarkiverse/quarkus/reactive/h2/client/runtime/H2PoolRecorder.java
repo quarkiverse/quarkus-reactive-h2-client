@@ -2,140 +2,84 @@ package io.quarkiverse.quarkus.reactive.h2.client.runtime;
 
 import static io.quarkus.credentials.CredentialsProvider.PASSWORD_PROPERTY_NAME;
 import static io.quarkus.credentials.CredentialsProvider.USER_PROPERTY_NAME;
+import static io.quarkus.reactive.datasource.runtime.ReactiveDataSourceUtil.qualifier;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 import jakarta.enterprise.inject.Instance;
-import jakarta.enterprise.util.TypeLiteral;
 
 import io.quarkiverse.quarkus.reactive.h2.client.H2PoolCreator;
-import io.quarkus.arc.SyntheticCreationalContext;
+import io.quarkus.arc.Arc;
 import io.quarkus.credentials.CredentialsProvider;
 import io.quarkus.credentials.runtime.CredentialsProviderFinder;
-import io.quarkus.datasource.common.runtime.DataSourceUtil;
 import io.quarkus.datasource.runtime.DataSourceRuntimeConfig;
-import io.quarkus.datasource.runtime.DataSourceSupport;
 import io.quarkus.datasource.runtime.DataSourcesRuntimeConfig;
-import io.quarkus.reactive.datasource.ReactiveDataSource;
 import io.quarkus.reactive.datasource.runtime.DataSourceReactiveRuntimeConfig;
 import io.quarkus.reactive.datasource.runtime.DataSourcesReactiveRuntimeConfig;
-import io.quarkus.runtime.RuntimeValue;
-import io.quarkus.runtime.ShutdownContext;
-import io.quarkus.runtime.annotations.Recorder;
+import io.quarkus.reactive.datasource.runtime.ReactivePoolUtil;
 import io.vertx.core.Vertx;
-import io.vertx.core.impl.VertxInternal;
 import io.vertx.jdbcclient.JDBCConnectOptions;
 import io.vertx.jdbcclient.JDBCPool;
+import io.vertx.sqlclient.Pool;
 import io.vertx.sqlclient.PoolOptions;
 
-@Recorder
-public class H2PoolRecorder {
+/**
+ * Creates the H2 pools, called from the {@link Pool} services registered by the deployment processor.
+ * <p>
+ * The {@link Pool} and Mutiny {@code Pool} beans and the health check are provided by the reactive datasource extension.
+ */
+public final class H2PoolRecorder {
 
-    private static final TypeLiteral<Instance<H2PoolCreator>> TYPE_LITERAL = new TypeLiteral<>() {
-    };
-
-    private final RuntimeValue<DataSourcesRuntimeConfig> runtimeConfig;
-    private final RuntimeValue<DataSourcesReactiveRuntimeConfig> reactiveRuntimeConfig;
-    private final RuntimeValue<DataSourcesReactiveH2Config> reactiveH2RuntimeConfig;
-
-    public H2PoolRecorder(
-            final RuntimeValue<DataSourcesRuntimeConfig> runtimeConfig,
-            final RuntimeValue<DataSourcesReactiveRuntimeConfig> reactiveRuntimeConfig,
-            final RuntimeValue<DataSourcesReactiveH2Config> reactiveH2RuntimeConfig) {
-        this.runtimeConfig = runtimeConfig;
-        this.reactiveRuntimeConfig = reactiveRuntimeConfig;
-        this.reactiveH2RuntimeConfig = reactiveH2RuntimeConfig;
+    private H2PoolRecorder() {
     }
 
-    public Function<SyntheticCreationalContext<JDBCPool>, JDBCPool> configureH2Pool(RuntimeValue<Vertx> vertx,
-            Supplier<Integer> eventLoopCount,
-            String dataSourceName,
-            ShutdownContext shutdown) {
-        return new Function<>() {
-            @Override
-            public JDBCPool apply(SyntheticCreationalContext<JDBCPool> context) {
-                JDBCPool pool = initialize((VertxInternal) vertx.getValue(),
-                        eventLoopCount.get(),
-                        dataSourceName,
-                        runtimeConfig.getValue().dataSources().get(dataSourceName),
-                        reactiveRuntimeConfig.getValue().dataSources().get(dataSourceName).reactive(),
-                        reactiveH2RuntimeConfig.getValue().dataSources().get(dataSourceName).reactive().h2(),
-                        context);
-
-                shutdown.addShutdownTask(pool::close);
-                return pool;
-            }
-        };
+    public static Optional<Pool> createPool(String dataSourceName, DataSourcesRuntimeConfig runtimeConfig,
+            DataSourcesReactiveRuntimeConfig reactiveRuntimeConfig,
+            DataSourcesReactiveH2Config reactiveH2RuntimeConfig, Vertx vertx, int eventLoopCount) {
+        if (!ReactivePoolUtil.checkActive(dataSourceName, runtimeConfig, reactiveRuntimeConfig).value()) {
+            return Optional.empty();
+        }
+        return Optional.of(initialize(vertx,
+                eventLoopCount,
+                dataSourceName,
+                runtimeConfig.dataSources().get(dataSourceName),
+                reactiveRuntimeConfig.dataSources().get(dataSourceName).reactive(),
+                reactiveH2RuntimeConfig.dataSources().get(dataSourceName).reactive().h2()));
     }
 
-    public Function<SyntheticCreationalContext<io.vertx.mutiny.jdbcclient.JDBCPool>, io.vertx.mutiny.jdbcclient.JDBCPool> mutinyH2Pool(
-            Function<SyntheticCreationalContext<JDBCPool>, JDBCPool> function) {
-        return new Function<>() {
-            @Override
-            @SuppressWarnings("unchecked")
-            public io.vertx.mutiny.jdbcclient.JDBCPool apply(SyntheticCreationalContext context) {
-                return io.vertx.mutiny.jdbcclient.JDBCPool.newInstance(function.apply(context));
-            }
-        };
-    }
-
-    private JDBCPool initialize(VertxInternal vertx,
+    private static Pool initialize(Vertx vertx,
             Integer eventLoopCount,
             String dataSourceName,
             DataSourceRuntimeConfig dataSourceRuntimeConfig,
             DataSourceReactiveRuntimeConfig dataSourceReactiveRuntimeConfig,
-            DataSourceReactiveH2Config dataSourceReactiveH2Config,
-            SyntheticCreationalContext<JDBCPool> context) {
-        if (context.getInjectedReference(DataSourceSupport.class).getInactiveNames().contains(dataSourceName)) {
-            throw DataSourceUtil.dataSourceInactive(dataSourceName);
-        }
-        PoolOptions poolOptions = toPoolOptions(eventLoopCount, dataSourceRuntimeConfig, dataSourceReactiveRuntimeConfig,
+            DataSourceReactiveH2Config dataSourceReactiveH2Config) {
+        PoolOptions poolOptions = toPoolOptions(eventLoopCount, dataSourceReactiveRuntimeConfig,
                 dataSourceReactiveH2Config);
-        JDBCConnectOptions h2ConnectOptions = toJDBCConnectOptions(dataSourceName, dataSourceRuntimeConfig,
-                dataSourceReactiveRuntimeConfig, dataSourceReactiveH2Config);
+        JDBCConnectOptions h2ConnectOptions = toJDBCConnectOptions(dataSourceRuntimeConfig,
+                dataSourceReactiveRuntimeConfig);
 
         if (dataSourceRuntimeConfig.credentialsProvider().isPresent()) {
             String beanName = dataSourceRuntimeConfig.credentialsProviderName().orElse(null);
             CredentialsProvider credentialsProvider = CredentialsProviderFinder.find(beanName);
-            var userCreds = credentialsProvider.getCredentials(USER_PROPERTY_NAME);
+            Map<String, String> userCreds = credentialsProvider.getCredentials(USER_PROPERTY_NAME);
             if ((userCreds != null) && (!userCreds.values().isEmpty())) {
                 userCreds.values().forEach(h2ConnectOptions::setUser);
             }
-            var passCreds = credentialsProvider.getCredentials(PASSWORD_PROPERTY_NAME);
+            Map<String, String> passCreds = credentialsProvider.getCredentials(PASSWORD_PROPERTY_NAME);
             if ((passCreds != null) && (!passCreds.values().isEmpty())) {
                 passCreds.values().forEach(h2ConnectOptions::setPassword);
             }
         }
 
-        return createPool(vertx, poolOptions, h2ConnectOptions, dataSourceName, context);
+        return createPool(vertx, poolOptions, h2ConnectOptions, dataSourceName);
     }
 
-    private PoolOptions toPoolOptions(Integer eventLoopCount,
-            DataSourceRuntimeConfig dataSourceRuntimeConfig,
+    private static PoolOptions toPoolOptions(Integer eventLoopCount,
             DataSourceReactiveRuntimeConfig dataSourceReactiveRuntimeConfig,
             DataSourceReactiveH2Config dataSourceReactiveH2Config) {
-        PoolOptions poolOptions = new PoolOptions();
-
-        poolOptions.setMaxSize(dataSourceReactiveRuntimeConfig.maxSize());
-
-        if (dataSourceReactiveRuntimeConfig.idleTimeout().isPresent()) {
-            var idleTimeout = Math.toIntExact(dataSourceReactiveRuntimeConfig.idleTimeout().get().toMillis());
-            poolOptions.setIdleTimeout(idleTimeout).setIdleTimeoutUnit(TimeUnit.MILLISECONDS);
-        }
-
-        if (dataSourceReactiveRuntimeConfig.shared()) {
-            poolOptions.setShared(true);
-            dataSourceReactiveRuntimeConfig.name().ifPresent(poolOptions::setName);
-        }
-
-        if (dataSourceReactiveRuntimeConfig.eventLoopSize().isPresent()) {
-            poolOptions.setEventLoopSize(Math.max(0, dataSourceReactiveRuntimeConfig.eventLoopSize().getAsInt()));
-        } else if (eventLoopCount != null) {
-            poolOptions.setEventLoopSize(Math.max(0, eventLoopCount));
-        }
+        PoolOptions poolOptions = ReactivePoolUtil.toPoolOptions(eventLoopCount, dataSourceReactiveRuntimeConfig);
 
         if (dataSourceReactiveH2Config.connectionTimeout().isPresent()) {
             poolOptions.setConnectionTimeout(dataSourceReactiveH2Config.connectionTimeout().getAsInt());
@@ -145,10 +89,8 @@ public class H2PoolRecorder {
         return poolOptions;
     }
 
-    private JDBCConnectOptions toJDBCConnectOptions(String dataSourceName,
-            DataSourceRuntimeConfig dataSourceRuntimeConfig,
-            DataSourceReactiveRuntimeConfig dataSourceReactiveRuntimeConfig,
-            DataSourceReactiveH2Config dataSourceReactiveH2Config) {
+    private static JDBCConnectOptions toJDBCConnectOptions(DataSourceRuntimeConfig dataSourceRuntimeConfig,
+            DataSourceReactiveRuntimeConfig dataSourceReactiveRuntimeConfig) {
         JDBCConnectOptions h2ConnectOptions = new JDBCConnectOptions();
         if (dataSourceReactiveRuntimeConfig.url().isPresent()) {
             // Only one URL is supported by JDBCPool
@@ -182,15 +124,9 @@ public class H2PoolRecorder {
         return h2ConnectOptions;
     }
 
-    private JDBCPool createPool(Vertx vertx, PoolOptions poolOptions, JDBCConnectOptions h2ConnectOptions,
-            String dataSourceName, SyntheticCreationalContext<JDBCPool> context) {
-        Instance<H2PoolCreator> instance;
-        if (DataSourceUtil.isDefault(dataSourceName)) {
-            instance = context.getInjectedReference(TYPE_LITERAL);
-        } else {
-            instance = context.getInjectedReference(TYPE_LITERAL,
-                    new ReactiveDataSource.ReactiveDataSourceLiteral(dataSourceName));
-        }
+    private static Pool createPool(Vertx vertx, PoolOptions poolOptions, JDBCConnectOptions h2ConnectOptions,
+            String dataSourceName) {
+        Instance<H2PoolCreator> instance = Arc.container().select(H2PoolCreator.class, qualifier(dataSourceName));
         if (instance.isResolvable()) {
             H2PoolCreator.Input input = new DefaultInput(vertx, poolOptions, h2ConnectOptions);
             return instance.get().create(input);

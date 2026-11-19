@@ -9,13 +9,13 @@ import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import io.quarkus.test.QuarkusUnitTest;
-import io.vertx.jdbcclient.JDBCPool;
+import io.quarkus.test.QuarkusExtensionTest;
+import io.vertx.sqlclient.Pool;
 
 public class H2PoolProducerTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest config = new QuarkusUnitTest()
+    static final QuarkusExtensionTest config = new QuarkusExtensionTest()
             .withApplicationRoot((jar) -> jar
                     .addClasses(BeanUsingBareH2Client.class)
                     .addClasses(BeanUsingMutinyH2Client.class)
@@ -39,11 +39,11 @@ public class H2PoolProducerTest {
     static class BeanUsingBareH2Client {
 
         @Inject
-        JDBCPool h2Client;
+        Pool h2Client;
 
         public CompletionStage<Void> verify() {
             CompletableFuture<Void> cf = new CompletableFuture<>();
-            h2Client.query("SELECT 1").execute(ar -> cf.complete(null));
+            h2Client.query("SELECT 1").execute().onComplete(ar -> cf.complete(null));
             return cf;
         }
     }
@@ -52,7 +52,7 @@ public class H2PoolProducerTest {
     static class BeanUsingMutinyH2Client {
 
         @Inject
-        io.vertx.mutiny.jdbcclient.JDBCPool mutinyH2Client;
+        io.vertx.mutiny.sqlclient.Pool mutinyH2Client;
 
         public CompletionStage<Void> verify() {
             return mutinyH2Client.query("SELECT 1").execute()
